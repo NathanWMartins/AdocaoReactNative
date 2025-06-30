@@ -3,15 +3,11 @@ import {
     View,
     Text,
     FlatList,
-    Image,
-    ActivityIndicator,
-    TouchableOpacity,
     ListRenderItem,
     StyleSheet,
 } from 'react-native';
 import axios from 'axios';
-import { MaterialIcons } from '@expo/vector-icons';
-import { Menu, useTheme, Snackbar } from 'react-native-paper';
+import { useTheme, Snackbar } from 'react-native-paper';
 import { useThemeContext } from '../contexts/ThemeContext';
 import { auth, db } from '../firebaseConfig';
 import { addDoc, collection, setDoc, doc, getDoc, deleteDoc, getDocs, where, query } from 'firebase/firestore';
@@ -175,9 +171,28 @@ export default function Home({ navigation }) {
         }
 
         try {
+            // 🔎 Verifica se o perfil está completo
+            const docRef = doc(db, 'usuarios', user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                alert('Perfil do usuário não encontrado.');
+                return;
+            }
+
+            const dados = docSnap.data();
+            const camposObrigatorios = ['nome', 'telefone', 'endereco', 'cidade', 'estado', 'motivo'];
+            const camposFaltando = camposObrigatorios.filter(campo => !dados[campo]);
+
+            if (camposFaltando.length > 0) {
+                setSnackbarMessage('Preencha todos os dados do perfil antes de adotar um cachorro.');
+                setSnackbarVisible(true);
+                return;
+            }
+
             const dogId = dog.id;
 
-            //Verifica se já está nos favoritos
+            // Verifica se já está nos favoritos
             const q = query(
                 collection(db, 'favorites'),
                 where('uid', '==', user.uid),
@@ -185,27 +200,27 @@ export default function Home({ navigation }) {
             );
             const querySnapshot = await getDocs(q);
 
-            //Remove dos favoritos se necessário
+            // Remove dos favoritos se necessário
             querySnapshot.forEach(async (docFav) => {
                 await deleteDoc(doc(db, 'favorites', docFav.id));
             });
 
-            //Adiciona à coleção 'adotados'
+            // Adiciona à coleção 'adotados'
             await addDoc(collection(db, 'adotados'), {
                 uid: user.uid,
                 dogId: dogId,
                 adoptedAt: new Date(),
             });
 
-            //Remove localmente da lista
+            // Remove localmente da lista
             setDogs((prev) => prev.filter((item) => item.id !== dogId));
             setAllDogs((prev) => prev.filter((item) => item.id !== dogId));
             setFavoriteIds((prev) => prev.filter((id) => id !== dogId));
 
-            //Atualiza Redux
+            // Atualiza Redux
             dispatch(incrementarAdotados());
 
-            //Feedback
+            // Feedback
             setSnackbarMessage('Cachorro adotado com sucesso!');
             setSnackbarVisible(true);
         } catch (error) {
@@ -262,8 +277,8 @@ export default function Home({ navigation }) {
     };
 
     const generateRandomName = () => {
-        const names = ['Luna', 'Thor', 'Bella', 'Max', 'Mel', 'Bob', 'Nina', 'Luke',
-            'Maya', 'Spike', 'Paçoca', 'Pepita', 'Pandora', 'Piti', 'Omelete', 'Barbie', 'Princesa'];
+        const names = ['Bidu', 'Max', 'Pipoca', 'Lupi', 'Snoopy', 'Ziggy', 'Toby', 'Cookie',
+            'Panqueca', 'Snow', 'Paçoca', 'Pepita', 'Pandora', 'Piti', 'Omelete', 'Barbie', 'Princesa'];
         return names[Math.floor(Math.random() * names.length)];
     };
 
