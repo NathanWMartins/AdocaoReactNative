@@ -35,7 +35,7 @@ export default function EditProfile({ navigation }) {
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
     const [reason, setReason] = useState('');
-
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     useEffect(() => {
         const carregarDados = async () => {
@@ -74,7 +74,7 @@ export default function EditProfile({ navigation }) {
                 estado: state,
                 motivo: reason,
             });
-
+            setSnackbarMessage('Dados salvos com sucesso.');
             setSnackbarVisible(true);
         } catch (error) {
             console.error('Erro ao salvar:', error.message);
@@ -275,7 +275,7 @@ export default function EditProfile({ navigation }) {
                         label: 'OK',
                     }}
                 >
-                    Conta excluída com sucesso!
+                    {snackbarMessage}
                 </Snackbar>
             </ScrollView>
         </KeyboardAvoidingView>

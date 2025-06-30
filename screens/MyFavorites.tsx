@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -6,12 +6,10 @@ import {
     Image,
     TouchableOpacity,
     StyleSheet,
-    ActivityIndicator,
 } from 'react-native';
-import { Menu, Snackbar, useTheme } from 'react-native-paper';
+import { Snackbar, useTheme } from 'react-native-paper';
 import { auth, db } from '../firebaseConfig';
 import { collection, getDocs, query, where, deleteDoc, doc, addDoc, getDoc } from 'firebase/firestore';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeContext } from '../contexts/ThemeContext';
 import { signOut } from 'firebase/auth';
 import { RootState } from '../redux/store';
@@ -102,6 +100,27 @@ export default function MyFavorites({ navigation }) {
         if (!user) return;
 
         try {
+            // Busca os dados do perfil
+            const docRef = doc(db, 'usuarios', user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                setSnackbarMessage('Erro ao buscar dados do perfil.');
+                setSnackbarVisible(true);
+                return;
+            }
+
+            const dados = docSnap.data();
+            const camposObrigatorios = ['nome', 'telefone', 'endereco', 'cidade', 'estado', 'motivo'];
+            const camposFaltando = camposObrigatorios.filter(campo => !dados[campo]);
+
+            if (camposFaltando.length > 0) {
+                setSnackbarMessage('Preencha todos os dados do perfil antes de adotar um cachorro.');
+                setSnackbarVisible(true);
+                return;
+            }
+
+            // Prossegue com a adoção
             await deleteDoc(doc(db, 'favorites', dog.id));
 
             await addDoc(collection(db, 'adotados'), {
@@ -120,6 +139,7 @@ export default function MyFavorites({ navigation }) {
             setSnackbarVisible(true);
         }
     };
+
 
     useFocusEffect(
         useCallback(() => {
@@ -196,10 +216,11 @@ export default function MyFavorites({ navigation }) {
                 visible={snackbarVisible}
                 onDismiss={() => setSnackbarVisible(false)}
                 duration={3000}
-                style={{ position: 'absolute', top: 0 }}
+                style={{ marginBottom: 20 }}
             >
                 {snackbarMessage}
             </Snackbar>
+
         </View>
     );
 }
