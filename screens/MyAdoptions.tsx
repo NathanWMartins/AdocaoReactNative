@@ -152,7 +152,10 @@ export default function MyAdoptions({ navigation }) {
                 <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Raça: {item.breed}</Text>
                 <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Idade: {item.age} anos</Text>
                 <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Adotado em: {formatDate(item.adoptedAt)}</Text>
-                <Text style={[styles.label, { color: '#26b8b5' }]}>✅ Adotado</Text>
+                <Text style={[styles.label, { color: '#26b8b5' }]}>✅ Adotado, cachorro a sua espera</Text>
+                <Text style={[styles.callInfo, { color: theme.colors.primary }]}>
+                    📞 Ligue ou mande mensagem para (48) 99999-8888 para marcar o encontro
+                </Text>
             </View>
             <View>
                 <TouchableOpacity onPress={() => { setSelectedDog(item); setEditingName(item.name); setEditModalVisible(true); }}>
@@ -164,6 +167,7 @@ export default function MyAdoptions({ navigation }) {
             </View>
         </View>
     );
+
 
     const logout = async () => {
         try {
@@ -359,6 +363,11 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#fff',
+        fontWeight: 'bold',
+    },
+    callInfo: {
+        fontSize: 13,
+        marginTop: 4,
         fontWeight: 'bold',
     },
 });
