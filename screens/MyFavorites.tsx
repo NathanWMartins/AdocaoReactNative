@@ -6,6 +6,7 @@ import {
     Image,
     TouchableOpacity,
     StyleSheet,
+    Modal,
 } from 'react-native';
 import { Snackbar, useTheme } from 'react-native-paper';
 import { auth, db } from '../firebaseConfig';
@@ -37,6 +38,7 @@ export default function MyFavorites({ navigation }) {
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [menuVisible, setMenuVisible] = useState(false);
+    const [selectedDog, setSelectedDog] = useState<FavoriteItem | null>(null);
     const theme = useTheme();
     const { toggleTheme, isDarkTheme } = useThemeContext();
     const dispatch = useDispatch();
@@ -95,12 +97,12 @@ export default function MyFavorites({ navigation }) {
         }
     };
 
-    const adotarCachorro = async (dog: FavoriteItem) => {
+    const adotarCachorro = async () => {
+        const dog = selectedDog;
         const user = auth.currentUser;
-        if (!user) return;
+        if (!user || !dog) return;
 
         try {
-            // Busca os dados do perfil
             const docRef = doc(db, 'usuarios', user.uid);
             const docSnap = await getDoc(docRef);
 
@@ -120,9 +122,7 @@ export default function MyFavorites({ navigation }) {
                 return;
             }
 
-            // Prossegue com a adoção
             await deleteDoc(doc(db, 'favorites', dog.id));
-
             await addDoc(collection(db, 'adotados'), {
                 uid: user.uid,
                 dogId: dog.dogId,
@@ -132,6 +132,7 @@ export default function MyFavorites({ navigation }) {
             setFavorites((prev) => prev.filter((item) => item.id !== dog.id));
             dispatch(incrementarAdotados());
             setSnackbarMessage('Adoção registrada com sucesso!');
+            setSelectedDog(null);
             setSnackbarVisible(true);
         } catch (error) {
             console.error('Erro ao registrar adoção:', error);
@@ -140,13 +141,15 @@ export default function MyFavorites({ navigation }) {
         }
     };
 
+    const confirmarAdocao = (dog: FavoriteItem) => {
+        setSelectedDog(dog);
+    };
 
     useFocusEffect(
         useCallback(() => {
             fetchFavorites();
         }, [])
     );
-
 
     const renderItem = ({ item }: { item: FavoriteItem }) => (
         <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
@@ -157,8 +160,7 @@ export default function MyFavorites({ navigation }) {
                 <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Idade: {item.age} anos</Text>
                 <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Sexo: {item.gender}</Text>
                 <View style={styles.buttons}>
-                    <AdoptButton onPress={() => adotarCachorro(item)} />
-
+                    <AdoptButton onPress={() => confirmarAdocao(item)} />
                     <TouchableOpacity
                         style={[styles.button, { backgroundColor: '#ccc' }]}
                         onPress={() => removerFavorito(item.id)}
@@ -212,6 +214,32 @@ export default function MyFavorites({ navigation }) {
                 />
             )}
 
+            <Modal visible={!!selectedDog} transparent animationType="fade">
+                <View style={styles.modalBackground}>
+                    <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+                        {selectedDog && (
+                            <>
+                                <Text style={[styles.modalText, { color: theme.colors.onSurface }]}>Deseja adotar {selectedDog.name}?</Text>
+                                <View style={styles.modalButtons}>
+                                    <TouchableOpacity
+                                        style={[styles.modalButton, { backgroundColor: '#ccc' }]}
+                                        onPress={() => setSelectedDog(null)}
+                                    >
+                                        <Text style={styles.buttonText}>Cancelar</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
+                                        onPress={adotarCachorro}
+                                    >
+                                        <Text style={styles.buttonText}>Adotar</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </>
+                        )}
+                    </View>
+                </View>
+            </Modal>
+
             <Snackbar
                 visible={snackbarVisible}
                 onDismiss={() => setSnackbarVisible(false)}
@@ -220,7 +248,6 @@ export default function MyFavorites({ navigation }) {
             >
                 {snackbarMessage}
             </Snackbar>
-
         </View>
     );
 }
@@ -285,5 +312,32 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontWeight: 'bold',
+    },
+    modalBackground: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        width: 300,
+        borderRadius: 12,
+        padding: 20,
+        alignItems: 'center',
+    },
+    modalText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    modalButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 6,
     },
 });
