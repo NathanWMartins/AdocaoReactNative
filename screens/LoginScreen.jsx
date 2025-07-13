@@ -151,33 +151,33 @@ export default function LoginScreen() {
                         {
                             titulo: '1. Quem somos',
                             texto: `A AdoCão é uma plataforma dedicada à adoção responsável de cães, conectando adotantes a protetores, ONGs e lares temporários.
-                                Controlador dos dados: AdoCão – Nathan Will Martins e Rafaela Ines Jung
-                                E-mail: contato@adocao.com.br
-                                Localização: [Cidade, Estado]
-                                Encarregado de Dados (DPO): privacidade@adocao.com.br`,
+        Controlador dos dados: AdoCão – Nathan Will Martins e Rafaela Ines Jung
+        E-mail: contato@adocao.com.br
+        Localização: Lages, Santa Catarina
+        Encarregado de Dados (DPO): privacidade@adocao.com.br`,
                         },
                         {
                             titulo: '2. Quais dados coletamos',
                             texto: `2.1. Dados fornecidos por você:
-                                - Nome completo
-                                - E-mail
-                                - Telefone
-                                - Cidade e Estado
-                                - Informações inseridas em formulários de cadastro ou adoção
+        - Nome completo
+        - E-mail
+        - Telefone
+        - Cidade e Estado
+        - Informações inseridas em formulários de cadastro ou adoção
 
-                                2.2. Dados coletados automaticamente:
-                                - Endereço IP
-                                - Tipo de navegador e sistema operacional
-                                - Cookies e identificadores de sessão
-                                - Geolocalização aproximada
-                                - Páginas visitadas e tempo de navegação`,
+2.2. Dados coletados automaticamente:
+        - Endereço IP
+        - Tipo de navegador e sistema operacional
+        - Cookies e identificadores de sessão
+        - Geolocalização aproximada
+        - Páginas visitadas e tempo de navegação`,
                         },
                         {
                             titulo: '3. Finalidades do uso dos dados',
                             texto: `- Entrar em contato sobre processos de adoção
-                                    - Personalizar e melhorar sua experiência na plataforma
-                                    - Enviar notificações relevantes (ex: status de adoção)
-                                    - Cumprir obrigações legais, regulatórias e contratuais`,
+        - Personalizar e melhorar sua experiência na plataforma
+        - Enviar notificações relevantes (ex: status de adoção)
+        - Cumprir obrigações legais, regulatórias e contratuais`,
                         },
                         {
                             titulo: '4. Base legal',
@@ -186,20 +186,20 @@ export default function LoginScreen() {
                         {
                             titulo: '5. Compartilhamento de dados',
                             texto: `Seus dados podem ser compartilhados com:
-                                - ONGs e protetores parceiros envolvidos nas adoções
-                                - Provedores de hospedagem segura (ex: servidores em nuvem)
-                                - Ferramentas de análise de navegação (ex: Google Analytics)
+        - ONGs e protetores parceiros envolvidos nas adoções
+        - Provedores de hospedagem segura (ex: servidores em nuvem)
+        - Ferramentas de análise de navegação (ex: Google Analytics)
 
-                                Não comercializamos seus dados pessoais.`,
+        Não comercializamos seus dados pessoais.`,
                         },
                         {
                             titulo: '6. Cookies e tecnologias semelhantes',
                             texto: `Utilizamos cookies para:
-                                - Melhorar o desempenho e funcionamento da plataforma
-                                - Salvar preferências do usuário
-                                - Obter estatísticas de uso
+        - Melhorar o desempenho e funcionamento da plataforma
+        - Salvar preferências do usuário
+        - Obter estatísticas de uso
 
-                                Você pode gerenciar ou desabilitar cookies nas configurações do seu navegador.`,
+        Você pode gerenciar ou desabilitar cookies nas configurações do seu navegador.`,
                         },
                         {
                             titulo: '7. Armazenamento e segurança dos dados',
@@ -208,24 +208,24 @@ export default function LoginScreen() {
                         {
                             titulo: '8. Seus direitos (LGPD – Art. 18)',
                             texto: `Você tem o direito de:
-                                - Confirmar a existência de tratamento de dados
-                                - Acessar seus dados pessoais
-                                - Corrigir dados incompletos, inexatos ou desatualizados
-                                - Solicitar anonimização, bloqueio ou eliminação de dados
-                                - Revogar o consentimento a qualquer momento
-                                - Solicitar portabilidade dos dados
-                                - Obter informações sobre compartilhamento de dados
+        - Confirmar a existência de tratamento de dados
+        - Acessar seus dados pessoais
+        - Corrigir dados incompletos, inexatos ou desatualizados
+        - Solicitar anonimização, bloqueio ou eliminação de dados
+        - Revogar o consentimento a qualquer momento
+        - Solicitar portabilidade dos dados
+        - Obter informações sobre compartilhamento de dados
 
-                                Para exercer seus direitos, entre em contato: privacidade@adocao.com.br`,
+        Para exercer seus direitos, entre em contato: privacidade@adocao.com.br`,
                         },
                         {
                             titulo: '9. Tempo de retenção dos dados',
                             texto: `Seus dados serão mantidos:
-                                - Enquanto durar seu vínculo com a AdoCão
-                                - Enquanto forem necessários para as finalidades informadas
-                                - Conforme obrigações legais e regulatórias
+        - Enquanto durar seu vínculo com a AdoCão
+        - Enquanto forem necessários para as finalidades informadas
+        - Conforme obrigações legais e regulatórias
 
-                                Após esse período, os dados serão anonimizados ou eliminados com segurança.`,
+        Após esse período, os dados serão anonimizados ou eliminados com segurança.`,
                         },
                         {
                             titulo: '10. Transferência internacional de dados',
@@ -238,14 +238,14 @@ export default function LoginScreen() {
                         {
                             titulo: '12. Aceite do usuário',
                             texto: `Ao clicar em “Li e aceito os termos”, você declara que:
-                                - Leu e compreendeu este documento
-                                - Está ciente dos seus direitos como titular dos dados
-                                - Autoriza o uso de seus dados conforme descrito`,
+        - Leu e compreendeu este documento
+        - Está ciente dos seus direitos como titular dos dados
+        - Autoriza o uso de seus dados conforme descrito`,
                         },
                         {
                             titulo: '13. Fale conosco',
                             texto: `Caso tenha dúvidas, sugestões ou precise exercer seus direitos, entre em contato:
-                                privacidade@adocao.com.br`,
+        privacidade@adocao.com.br`,
                         },
                     ].map((sec, idx) => (
                         <View key={idx} style={styles.section}>
