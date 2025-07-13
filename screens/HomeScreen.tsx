@@ -5,6 +5,8 @@ import {
     FlatList,
     ListRenderItem,
     StyleSheet,
+    Modal,
+    TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
 import { useTheme, Snackbar } from 'react-native-paper';
@@ -38,6 +40,7 @@ export default function Home({ navigation }) {
     const [availableBreeds, setAvailableBreeds] = useState<string[]>([]);
     const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [confirmDog, setConfirmDog] = useState<DogItem | null>(null);
     const { toggleTheme, isDarkTheme } = useThemeContext();
     const theme = useTheme();
     const dispatch = useDispatch();
@@ -53,12 +56,10 @@ export default function Home({ navigation }) {
             const user = auth.currentUser;
             if (!user) return;
 
-            // Buscar raças disponíveis
             const breedsRes = await axios.get('https://dog.ceo/api/breeds/list/all');
             const breeds = Object.keys(breedsRes.data.message);
             setAvailableBreeds(breeds);
 
-            // Buscar dogs já adotados pelo usuário
             const adotadosSnapshot = await getDocs(
                 query(collection(db, 'adotados'), where('uid', '==', user.uid))
             );
@@ -66,7 +67,6 @@ export default function Home({ navigation }) {
 
             const dogsArray: DogItem[] = [];
 
-            // Gerar 30 cães aleatórios
             for (let i = 0; i < 30; i++) {
                 const randomBreed = breeds[Math.floor(Math.random() * breeds.length)];
                 const imgRes = await axios.get(`https://dog.ceo/api/breed/${randomBreed}/images/random`);
@@ -80,21 +80,12 @@ export default function Home({ navigation }) {
                     gender: getRandomGender(),
                 };
 
-                // Pula se já está adotado
                 if (adotadosIds.includes(dog.id)) continue;
 
-                // Salva no Firestore se ainda não existir
                 const dogRef = doc(db, 'cachorros', dog.id);
                 const docSnap = await getDoc(dogRef);
                 if (!docSnap.exists()) {
-                    await setDoc(dogRef, {
-                        breed: dog.breed,
-                        age: dog.age,
-                        imageUrl: dog.imageUrl,
-                        name: dog.name,
-                        gender: dog.gender,
-                        createdAt: new Date(),
-                    });
+                    await setDoc(dogRef, { ...dog, createdAt: new Date() });
                 }
 
                 dogsArray.push(dog);
@@ -116,7 +107,6 @@ export default function Home({ navigation }) {
             const user = auth.currentUser;
             if (!user) return;
 
-            // Buscar dogs já adotados pelo usuário
             const adotadosSnapshot = await getDocs(
                 query(collection(db, 'adotados'), where('uid', '==', user.uid))
             );
@@ -130,26 +120,18 @@ export default function Home({ navigation }) {
                 const dog: DogItem = {
                     id: `${sanitizeId(imgRes.data.message)}-${i}`,
                     imageUrl: imgRes.data.message,
-                    breed: breed,
+                    breed,
                     age: Math.floor(Math.random() * 9) + 2,
                     name: generateRandomName(),
                     gender: getRandomGender(),
                 };
 
-                // ⚠️ Ignora se já foi adotado
                 if (adotadosIds.includes(dog.id)) continue;
 
                 const dogRef = doc(db, 'cachorros', dog.id);
                 const docSnap = await getDoc(dogRef);
                 if (!docSnap.exists()) {
-                    await setDoc(dogRef, {
-                        breed: dog.breed,
-                        age: dog.age,
-                        imageUrl: dog.imageUrl,
-                        name: dog.name,
-                        gender: dog.gender,
-                        createdAt: new Date(),
-                    });
+                    await setDoc(dogRef, { ...dog, createdAt: new Date() });
                 }
 
                 dogsArray.push(dog);
@@ -163,6 +145,12 @@ export default function Home({ navigation }) {
         }
     };
 
+    const confirmAdocao = async () => {
+        if (!confirmDog) return;
+        await handleAdotar(confirmDog);
+        setConfirmDog(null);
+    };
+
     const handleAdotar = async (dog: DogItem) => {
         const user = auth.currentUser;
         if (!user) {
@@ -171,7 +159,6 @@ export default function Home({ navigation }) {
         }
 
         try {
-            // 🔎 Verifica se o perfil está completo
             const docRef = doc(db, 'usuarios', user.uid);
             const docSnap = await getDoc(docRef);
 
@@ -191,36 +178,26 @@ export default function Home({ navigation }) {
             }
 
             const dogId = dog.id;
-
-            // Verifica se já está nos favoritos
             const q = query(
                 collection(db, 'favorites'),
                 where('uid', '==', user.uid),
                 where('dogId', '==', dogId)
             );
             const querySnapshot = await getDocs(q);
-
-            // Remove dos favoritos se necessário
             querySnapshot.forEach(async (docFav) => {
                 await deleteDoc(doc(db, 'favorites', docFav.id));
             });
 
-            // Adiciona à coleção 'adotados'
             await addDoc(collection(db, 'adotados'), {
                 uid: user.uid,
-                dogId: dogId,
+                dogId,
                 adoptedAt: new Date(),
             });
 
-            // Remove localmente da lista
             setDogs((prev) => prev.filter((item) => item.id !== dogId));
             setAllDogs((prev) => prev.filter((item) => item.id !== dogId));
             setFavoriteIds((prev) => prev.filter((id) => id !== dogId));
-
-            // Atualiza Redux
             dispatch(incrementarAdotados());
-
-            // Feedback
             setSnackbarMessage('Cachorro adotado com sucesso!');
             setSnackbarVisible(true);
         } catch (error) {
@@ -240,7 +217,6 @@ export default function Home({ navigation }) {
             const dogId = dog.id;
 
             if (favoriteIds.includes(dogId)) {
-                // Remover dos favoritos
                 const q = query(
                     collection(db, 'favorites'),
                     where('uid', '==', user.uid),
@@ -255,10 +231,9 @@ export default function Home({ navigation }) {
                 setFavoriteIds((prev) => prev.filter((id) => id !== dogId));
                 setSnackbarMessage('Removido dos favoritos!');
             } else {
-                // Adicionar aos favoritos
                 await addDoc(collection(db, 'favorites'), {
                     uid: user.uid,
-                    dogId: dogId,
+                    dogId,
                     timestamp: new Date(),
                 });
                 setFavoriteIds((prev) => [...prev, dogId]);
@@ -272,16 +247,11 @@ export default function Home({ navigation }) {
         }
     };
 
-    const sanitizeId = (url: string) => {
-        return url.replace(/[^a-zA-Z0-9]/g, '-');
-    };
-
+    const sanitizeId = (url: string) => url.replace(/[^a-zA-Z0-9]/g, '-');
     const generateRandomName = () => {
-        const names = ['Bidu', 'Max', 'Pipoca', 'Lupi', 'Snoopy', 'Ziggy', 'Toby', 'Cookie',
-            'Panqueca', 'Snow', 'Paçoca', 'Pepita', 'Pandora', 'Piti', 'Omelete', 'Barbie', 'Princesa'];
+        const names = ['Bidu', 'Max', 'Pipoca', 'Lupi', 'Snoopy', 'Ziggy', 'Toby', 'Cookie', 'Panqueca', 'Snow', 'Paçoca', 'Pepita', 'Pandora', 'Piti', 'Omelete', 'Barbie', 'Princesa', 'Pipoca', 'Sushi', 'Crispy', 'Nescau'];
         return names[Math.floor(Math.random() * names.length)];
     };
-
     const getRandomGender = (): 'Macho' | 'Fêmea' => (Math.random() < 0.5 ? 'Macho' : 'Fêmea');
 
     const logout = async () => {
@@ -299,7 +269,7 @@ export default function Home({ navigation }) {
             dog={item}
             isFavorite={favoriteIds.includes(item.id)}
             onToggleFavorite={() => toggleFavorito(item)}
-            onAdopt={() => handleAdotar(item)}
+            onAdopt={() => setConfirmDog(item)}
         />
     );
 
@@ -307,7 +277,6 @@ export default function Home({ navigation }) {
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.header}>
                 <Text style={[styles.title, { color: theme.colors.onBackground }]}>🐶 Cães para Adoção</Text>
-
                 <UserMenu
                     visible={menuVisible}
                     onDismiss={() => setMenuVisible(false)}
@@ -336,7 +305,6 @@ export default function Home({ navigation }) {
                 />
             </View>
 
-
             {loading ? (
                 <LoadingIndicator />
             ) : (
@@ -347,6 +315,25 @@ export default function Home({ navigation }) {
                     contentContainerStyle={styles.list}
                 />
             )}
+
+            <Modal visible={!!confirmDog} transparent animationType="fade">
+                <View style={styles.modalBackground}>
+                    <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+                        <Text style={{ fontSize: 16, marginBottom: 16, color: theme.colors.onSurface, textAlign: 'center' }}>
+                            Tem certeza que deseja adotar {confirmDog?.name}?
+                        </Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
+                            <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#ccc' }]} onPress={() => setConfirmDog(null)}>
+                                <Text style={styles.modalButtonText}>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.modalButton, { backgroundColor: theme.colors.primary }]} onPress={confirmAdocao}>
+                                <Text style={styles.modalButtonText}>Adotar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             <Snackbar
                 visible={snackbarVisible}
                 onDismiss={() => setSnackbarVisible(false)}
@@ -376,5 +363,26 @@ const styles = StyleSheet.create({
     },
     list: {
         gap: 16,
+    },
+    modalBackground: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        width: 300,
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+    },
+    modalButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 6,
+    },
+    modalButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });
