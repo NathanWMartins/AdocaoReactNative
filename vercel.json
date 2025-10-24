@@ -3,6 +3,5 @@
     "outputDirectory": "web-build",
     "devCommand": "npm run web",
     "cleanUrls": true,
-    "trailingSlash": false,
-    "framework": "expo"
+    "trailingSlash": false
 }
