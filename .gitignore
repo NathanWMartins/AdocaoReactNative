@@ -38,5 +38,3 @@ yarn-error.*
 
 .env
 .env.local
-.firebase
-firebaseConfig.js
