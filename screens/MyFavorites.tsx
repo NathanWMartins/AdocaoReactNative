@@ -9,7 +9,6 @@ import {
     Modal,
 } from 'react-native';
 import { Snackbar, useTheme } from 'react-native-paper';
-import { auth, db } from '../firebaseConfig';
 import { collection, getDocs, query, where, deleteDoc, doc, addDoc, getDoc } from 'firebase/firestore';
 import { useThemeContext } from '../contexts/ThemeContext';
 import { signOut } from 'firebase/auth';
@@ -21,6 +20,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AdoptButton from '../components/AdoptButton';
 import LoadingIndicator from '../components/LoadingIndicator';
 import Header from '../components/Header';
+import { auth, db } from '../firebaseConfig';
 
 interface FavoriteItem {
     id: string;

@@ -11,7 +11,6 @@ import {
 import axios from 'axios';
 import { useTheme, Snackbar } from 'react-native-paper';
 import { useThemeContext } from '../contexts/ThemeContext';
-import { auth, db } from '../firebaseConfig';
 import { addDoc, collection, setDoc, doc, getDoc, deleteDoc, getDocs, where, query } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useDispatch } from 'react-redux';
@@ -20,6 +19,7 @@ import DogCard from '../components/HomeDogCard';
 import BreedFilter from '../components/BreedFilter';
 import LoadingIndicator from '../components/LoadingIndicator';
 import Header from '../components/Header';
+import { auth, db } from '../firebaseConfig';
 
 interface DogItem {
     id: string;

@@ -18,13 +18,13 @@ import {
     getDocs,
     deleteDoc,
 } from 'firebase/firestore';
-import { auth, db } from '../firebaseConfig';
 import { ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { deleteUser, signOut } from 'firebase/auth';
 import Header from '../components/Header';
 import { useThemeContext } from '../contexts/ThemeContext';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
+import { auth, db } from '../firebaseConfig';
 
 export default function EditProfile({ navigation }) {
     const theme = useTheme();
@@ -327,7 +327,7 @@ export default function EditProfile({ navigation }) {
 
                         <TouchableOpacity
                             style={[styles.deleteButton, { flex: 1 }]}
-                            onPress={() => setConfirmVisible(true)}
+                            onPress={handleDelete}
                             disabled={loadingDelete}
                         >
                             <Icon name="delete" size={20} color="white" style={styles.buttonIcon} />
