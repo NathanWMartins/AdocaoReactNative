@@ -20,7 +20,11 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { deleteUser } from 'firebase/auth';
+import { deleteUser, signOut } from 'firebase/auth';
+import Header from '../components/Header';
+import { useThemeContext } from '../contexts/ThemeContext';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import axios from 'axios';
 
 export default function EditProfile({ navigation }) {
     const theme = useTheme();
@@ -36,6 +40,9 @@ export default function EditProfile({ navigation }) {
     const [state, setState] = useState('');
     const [reason, setReason] = useState('');
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [menuVisible, setMenuVisible] = useState(false);
+    const { toggleTheme, isDarkTheme } = useThemeContext();
+    const [dogImage, setDogImage] = useState('');
 
     useEffect(() => {
         const carregarDados = async () => {
@@ -60,6 +67,19 @@ export default function EditProfile({ navigation }) {
 
         carregarDados();
     }, []);
+
+    useEffect(() => {
+        fetchRandomDog();
+    }, []);
+
+    const fetchRandomDog = async () => {
+        try {
+            const response = await axios.get('https://dog.ceo/api/breeds/image/random');
+            setDogImage(response.data.message);
+        } catch (error) {
+            console.error('Erro ao buscar imagem do cachorro:', error);
+        }
+    };
 
     const handleSave = async () => {
         try {
@@ -124,224 +144,283 @@ export default function EditProfile({ navigation }) {
         }
     };
 
+    const logout = async () => {
+        try {
+            await signOut(auth);
+            navigation.replace('Login');
+        } catch (error) {
+            console.error('Erro ao sair:', error);
+            alert('Erro ao sair da conta.');
+        }
+    };
+
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 80 }}>
-                <Text style={[styles.title, { color: theme.colors.onBackground }]}>
-                    Editar Perfil
-                </Text>
-
-                <TextInput
-                    style={[styles.input, { color: theme.colors.onSurface, borderColor: theme.colors.outline }]}
-                    placeholder="Nome"
-                    placeholderTextColor={theme.colors.outline}
-                    value={name}
-                    onChangeText={setName}
-                />
-
-                <TextInput
-                    style={[
-                        styles.input,
-                        {
-                            color: theme.colors.onSurface,
-                            borderColor: theme.colors.outline,
-                            backgroundColor: theme.colors.surfaceVariant,
-                        },
-                    ]}
-                    placeholder="E-mail"
-                    placeholderTextColor={theme.colors.outline}
-                    value={email}
-                    editable={false}
-                />
-
-                <TextInput
-                    style={[styles.input, { color: theme.colors.onSurface, borderColor: theme.colors.outline }]}
-                    placeholder="Telefone"
-                    placeholderTextColor={theme.colors.outline}
-                    value={phone}
-                    onChangeText={setPhone}
-                    keyboardType="phone-pad"
-                />
-
-                <TextInput
-                    style={[styles.input, { color: theme.colors.onSurface, borderColor: theme.colors.outline }]}
-                    placeholder="Endereço"
-                    placeholderTextColor={theme.colors.outline}
-                    value={address}
-                    onChangeText={setAddress}
-                />
-
-                <TextInput
-                    style={[styles.input, { color: theme.colors.onSurface, borderColor: theme.colors.outline }]}
-                    placeholder="Cidade"
-                    placeholderTextColor={theme.colors.outline}
-                    value={city}
-                    onChangeText={setCity}
-                />
-
-                <TextInput
-                    style={[styles.input, { color: theme.colors.onSurface, borderColor: theme.colors.outline }]}
-                    placeholder="Estado"
-                    placeholderTextColor={theme.colors.outline}
-                    value={state}
-                    onChangeText={setState}
-                />
-
-                <TextInput
-                    style={[styles.input, {
-                        height: 100,
-                        color: theme.colors.onSurface,
-                        borderColor: theme.colors.outline,
-                        textAlignVertical: 'top',
-                    }]}
-                    placeholder="Por que você quer adotar um cão?"
-                    placeholderTextColor={theme.colors.outline}
-                    value={reason}
-                    onChangeText={setReason}
-                    multiline
-                />
-
-                <View style={styles.buttonGroup}>
-                    <TouchableOpacity
-                        style={[styles.button, { backgroundColor: '#26b8b5' }]}
-                        onPress={handleSave}
-                    >
-                        <Text style={styles.buttonText}>Salvar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[
-                            styles.button,
-                            {
-                                backgroundColor: theme.colors.surface,
-                                borderWidth: 1,
-                                borderColor: theme.colors.outline,
-                            },
-                        ]}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Text style={[styles.buttonText, { color: theme.colors.onSurface }]}>Cancelar</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                    style={[styles.deleteButton]}
-                    onPress={() => setConfirmVisible(true)}
-                    disabled={loadingDelete}
-                >
-                    <Text style={styles.deleteButtonText}>
-                        {loadingDelete ? 'Excluindo...' : 'Excluir Conta'}
+        <>
+            <Header
+                title="AdoCão"
+                menuVisible={menuVisible}
+                onToggleMenu={() => setMenuVisible(true)}
+                onDismissMenu={() => setMenuVisible(false)}
+                onEditProfile={() => navigation.navigate('Edit')}
+                onFavorites={() => navigation.navigate('Favorites')}
+                onAdopteds={() => navigation.navigate('Adopteds')}
+                onToggleTheme={toggleTheme}
+                isDarkTheme={isDarkTheme}
+                onLogout={logout}
+            />
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <ScrollView contentContainerStyle={{
+                    padding: 20,
+                    paddingBottom: 70,
+                    maxWidth: 800,
+                    alignSelf: 'center',
+                    width: '100%',
+                }}>
+                    <Text style={[styles.title, { color: theme.colors.onBackground }]}>
+                        Editar Perfil
                     </Text>
-                </TouchableOpacity>
 
-                <Modal visible={confirmVisible} transparent animationType="fade">
-                    <View style={styles.modalBackground}>
-                        <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
-                            <Text style={{ fontSize: 18, marginBottom: 20 }}>
-                                Tem certeza que deseja excluir sua conta?
-                            </Text>
+                    <View style={styles.row}>
+                        <View style={styles.column}>
+                            <View style={[styles.inputContainer, {
+                                borderColor: theme.colors.outline,
+                                backgroundColor: theme.colors.surface
+                            }]}>
+                                <Icon name="account" size={20} color={theme.colors.outline} style={styles.icon} />
+                                <TextInput
+                                    style={[styles.input, { color: theme.colors.onSurface }]}
+                                    placeholder="Nome"
+                                    placeholderTextColor={theme.colors.outline}
+                                    value={name}
+                                    onChangeText={setName}
+                                />
+                            </View>
+                        </View>
 
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <TouchableOpacity
-                                    onPress={() => setConfirmVisible(false)}
-                                    style={[styles.modalButton, { backgroundColor: theme.colors.backdrop }]}
-                                    disabled={loadingDelete}
-                                >
-                                    <Text>Cancelar</Text>
-                                </TouchableOpacity>
+                        <View style={styles.column}>
+                            <View style={[styles.inputContainer, {
+                                borderColor: theme.colors.outline,
+                                backgroundColor: theme.colors.surfaceVariant,
+                            }]}>
+                                <Icon name="email" size={20} color={theme.colors.outline} style={styles.icon} />
+                                <TextInput
+                                    style={[styles.input, { color: theme.colors.onSurface }]}
+                                    placeholder="E-mail"
+                                    placeholderTextColor={theme.colors.outline}
+                                    value={email}
+                                    editable={false}
+                                />
+                            </View>
+                        </View>
 
-                                <TouchableOpacity
-                                    onPress={handleDelete}
-                                    style={[styles.modalButton, { backgroundColor: 'red' }]}
-                                    disabled={loadingDelete}
-                                >
-                                    <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                                        {loadingDelete ? 'Excluindo...' : 'Excluir'}
-                                    </Text>
-                                </TouchableOpacity>
+                        <View style={styles.column}>
+                            <View style={[styles.inputContainer, {
+                                borderColor: theme.colors.outline,
+                                backgroundColor: theme.colors.surface
+                            }]}>
+                                <Icon name="phone" size={20} color={theme.colors.outline} style={styles.icon} />
+                                <TextInput
+                                    style={[styles.input, { color: theme.colors.onSurface }]}
+                                    placeholder="Telefone"
+                                    placeholderTextColor={theme.colors.outline}
+                                    value={phone}
+                                    onChangeText={setPhone}
+                                    keyboardType="phone-pad"
+                                />
                             </View>
                         </View>
                     </View>
-                </Modal>
 
+                    <View style={styles.row}>
+                        <View style={styles.column}>
+                            <View style={[styles.inputContainer, {
+                                borderColor: theme.colors.outline,
+                                backgroundColor: theme.colors.surface
+                            }]}>
+                                <Icon name="map-marker" size={20} color={theme.colors.outline} style={styles.icon} />
+                                <TextInput
+                                    style={[styles.input, { color: theme.colors.onSurface }]}
+                                    placeholder="Cidade"
+                                    placeholderTextColor={theme.colors.outline}
+                                    value={city}
+                                    onChangeText={setCity}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.column}>
+                            <View style={[styles.inputContainer, {
+                                borderColor: theme.colors.outline,
+                                backgroundColor: theme.colors.surface
+                            }]}>
+                                <Icon name="home" size={20} color={theme.colors.outline} style={styles.icon} />
+                                <TextInput
+                                    style={[styles.input, { color: theme.colors.onSurface }]}
+                                    placeholder="Endereço"
+                                    placeholderTextColor={theme.colors.outline}
+                                    value={address}
+                                    onChangeText={setAddress}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.column}>
+                            <View style={[styles.inputContainer, {
+                                borderColor: theme.colors.outline,
+                                backgroundColor: theme.colors.surface
+                            }]}>
+                                <Icon name="earth" size={20} color={theme.colors.outline} style={styles.icon} />
+                                <TextInput
+                                    style={[styles.input, { color: theme.colors.onSurface }]}
+                                    placeholder="Estado"
+                                    placeholderTextColor={theme.colors.outline}
+                                    value={state}
+                                    onChangeText={setState}
+                                />
+                            </View>
+                        </View>
+                    </View>
+
+                    <View style={[styles.inputContainer, {
+                        borderColor: theme.colors.outline,
+                        backgroundColor: theme.colors.surface,
+                        marginBottom: 16,
+                    }]}>
+                        <Icon name="heart" size={20} color={theme.colors.outline} style={styles.icon} />
+                        <TextInput
+                            style={[styles.textArea, { color: theme.colors.onSurface }]}
+                            placeholder="Por que você quer adotar um cão?"
+                            placeholderTextColor={theme.colors.outline}
+                            value={reason}
+                            onChangeText={setReason}
+                            multiline
+                        />
+                    </View>
+
+                    <View style={styles.buttonRow}>
+                        <TouchableOpacity
+                            style={[styles.button, { backgroundColor: '#26b8b5', flex: 1 }]}
+                            onPress={handleSave}
+                        >
+                            <Icon name="check" size={20} color="#fff" style={styles.buttonIcon} />
+                            <Text style={styles.buttonText}>Salvar</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[
+                                styles.button,
+                                {
+                                    backgroundColor: theme.colors.surface,
+                                    borderWidth: 1,
+                                    borderColor: theme.colors.outline,
+                                    flex: 1,
+                                },
+                            ]}
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Icon name="close" size={20} color={theme.colors.onSurface} style={styles.buttonIcon} />
+                            <Text style={[styles.buttonText, { color: theme.colors.onSurface }]}>Cancelar</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.deleteButton, { flex: 1 }]}
+                            onPress={() => setConfirmVisible(true)}
+                            disabled={loadingDelete}
+                        >
+                            <Icon name="delete" size={20} color="white" style={styles.buttonIcon} />
+                            <Text style={styles.deleteButtonText}>
+                                {loadingDelete ? 'Excluindo...' : 'Excluir'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
                 <Snackbar
                     visible={snackbarVisible}
                     onDismiss={() => setSnackbarVisible(false)}
                     duration={3000}
-                    action={{
-                        label: 'OK',
-                    }}
+                    style={{ marginBottom: 20 }}
                 >
                     {snackbarMessage}
                 </Snackbar>
-            </ScrollView>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    row: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 16,
+    },
+    column: {
         flex: 1,
-        padding: 24,
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 24,
-    },
-    input: {
-        height: 56,
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         borderWidth: 1,
         borderRadius: 8,
-        paddingHorizontal: 12,
-        marginBottom: 16,
-        fontSize: 16,
     },
-    buttonGroup: {
-        marginTop: 16,
+    icon: {
+        padding: 12,
+        paddingLeft: 16,
+    },
+    input: {
+        flex: 1,
+        height: 52,
+        paddingHorizontal: 12,
+        fontSize: 15,
+        borderWidth: 0,
+    },
+    textArea: {
+        flex: 1,
+        height: 100,
+        paddingHorizontal: 12,
+        paddingTop: 12,
+        fontSize: 15,
+        borderWidth: 0,
+        textAlignVertical: 'top',
+    },
+    buttonRow: {
+        flexDirection: 'row',
         gap: 12,
+        marginTop: 20,
     },
     button: {
+        flexDirection: 'row',
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',
+        justifyContent: 'center',
+    },
+    buttonIcon: {
+        marginRight: 8,
     },
     buttonText: {
         color: '#fff',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 15,
     },
     deleteButton: {
-        marginTop: 30,
         backgroundColor: 'red',
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
     },
     deleteButtonText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 15,
     },
-    modalBackground: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContainer: {
-        width: '80%',
-        padding: 20,
-        borderRadius: 10,
-    },
-    modalButton: {
-        flex: 1,
-        paddingVertical: 10,
-        marginHorizontal: 5,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
+    title: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 24,
+    }
 });

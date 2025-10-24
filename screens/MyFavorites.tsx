@@ -19,8 +19,8 @@ import { decrementarFavoritos, incrementarAdotados, setFavoritos } from '../redu
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import AdoptButton from '../components/AdoptButton';
-import UserMenu from '../components/UserMenu';
 import LoadingIndicator from '../components/LoadingIndicator';
+import Header from '../components/Header';
 
 interface FavoriteItem {
     id: string;
@@ -117,7 +117,7 @@ export default function MyFavorites({ navigation }) {
             const camposFaltando = camposObrigatorios.filter(campo => !dados[campo]);
 
             if (camposFaltando.length > 0) {
-                setSnackbarMessage('Preencha todos os dados do perfil antes de adotar um cachorro.');
+                setSnackbarMessage('Preencha todos os dados do seu perfil antes de adotar um cachorro.');
                 setSnackbarVisible(true);
                 return;
             }
@@ -183,72 +183,75 @@ export default function MyFavorites({ navigation }) {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <View style={styles.header}>
-                <Text style={[styles.title, { color: theme.colors.onBackground }]}>🐾 Meus Favoritos</Text>
-                <UserMenu
-                    visible={menuVisible}
-                    onDismiss={() => setMenuVisible(false)}
-                    onToggleVisible={() => setMenuVisible(true)}
-                    onEditProfile={() => navigation.navigate('Edit')}
-                    onFavorites={() => navigation.navigate('Favorites')}
-                    onAdopteds={() => navigation.navigate('Adopteds')}
-                    onToggleTheme={toggleTheme}
-                    isDarkTheme={isDarkTheme}
-                    onLogout={logout}
-                />
-            </View>
-
-            <Text style={{ color: theme.colors.onBackground, fontSize: 16, marginTop: 4 }}>
-                Total de Favoritos: {favoritos}
-            </Text>
-
-            {loading ? (
-                <LoadingIndicator />
-            ) : (
-                <FlatList
-                    data={favorites}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderItem}
-                    contentContainerStyle={{ paddingBottom: 20 }}
-                />
-            )}
-
-            <Modal visible={!!selectedDog} transparent animationType="fade">
-                <View style={styles.modalBackground}>
-                    <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
-                        {selectedDog && (
-                            <>
-                                <Text style={[styles.modalText, { color: theme.colors.onSurface }]}>Deseja adotar {selectedDog.name}?</Text>
-                                <View style={styles.modalButtons}>
-                                    <TouchableOpacity
-                                        style={[styles.modalButton, { backgroundColor: '#ccc' }]}
-                                        onPress={() => setSelectedDog(null)}
-                                    >
-                                        <Text style={styles.buttonText}>Cancelar</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
-                                        onPress={adotarCachorro}
-                                    >
-                                        <Text style={styles.buttonText}>Adotar</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </>
-                        )}
-                    </View>
+        <>
+            <Header
+                title="AdoCão"
+                menuVisible={menuVisible}
+                onToggleMenu={() => setMenuVisible(true)}
+                onDismissMenu={() => setMenuVisible(false)}
+                onEditProfile={() => navigation.navigate('Edit')}
+                onFavorites={() => navigation.navigate('Favorites')}
+                onAdopteds={() => navigation.navigate('Adopteds')}
+                onToggleTheme={toggleTheme}
+                isDarkTheme={isDarkTheme}
+                onLogout={logout}
+            />
+            <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+                <View style={styles.header}>
+                    <Text style={[styles.title, { color: theme.colors.onBackground }]}>Meus Favoritos</Text>
                 </View>
-            </Modal>
 
-            <Snackbar
-                visible={snackbarVisible}
-                onDismiss={() => setSnackbarVisible(false)}
-                duration={3000}
-                style={{ marginBottom: 20 }}
-            >
-                {snackbarMessage}
-            </Snackbar>
-        </View>
+                <Text style={{ color: theme.colors.onBackground, fontSize: 16, marginTop: 4, marginBottom: 5 }}>
+                    Total de Favoritos: {favoritos}
+                </Text>
+
+                {loading ? (
+                    <LoadingIndicator />
+                ) : (
+                    <FlatList
+                        data={favorites}
+                        keyExtractor={(item) => item.id}
+                        renderItem={renderItem}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                    />
+                )}
+
+                <Modal visible={!!selectedDog} transparent animationType="fade">
+                    <View style={styles.modalBackground}>
+                        <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+                            {selectedDog && (
+                                <>
+                                    <Text style={[styles.modalText, { color: theme.colors.onSurface }]}>Deseja adotar {selectedDog.name}?</Text>
+                                    <View style={styles.modalButtons}>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, { backgroundColor: '#ccc' }]}
+                                            onPress={() => setSelectedDog(null)}
+                                        >
+                                            <Text style={styles.buttonText}>Cancelar</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
+                                            onPress={adotarCachorro}
+                                        >
+                                            <Text style={styles.buttonText}>Adotar</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
+
+                <Snackbar
+                    visible={snackbarVisible}
+                    onDismiss={() => setSnackbarVisible(false)}
+                    duration={3000}
+                    style={{ marginBottom: 20 }}
+                >
+                    {snackbarMessage}
+                </Snackbar>
+            </View>
+        </>
     );
 }
 
@@ -262,12 +265,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        paddingTop: 50,
+        paddingTop: 30,
     },
     title: {
         fontSize: 22,
         fontWeight: 'bold',
-        marginBottom: 16,
+        marginBottom: 10,
     },
     card: {
         flexDirection: 'row',

@@ -17,9 +17,9 @@ import { signOut } from 'firebase/auth';
 import { useDispatch } from 'react-redux';
 import { incrementarAdotados } from '../redux/contadorSlice';
 import DogCard from '../components/HomeDogCard';
-import UserMenu from '../components/UserMenu';
 import BreedFilter from '../components/BreedFilter';
 import LoadingIndicator from '../components/LoadingIndicator';
+import Header from '../components/Header';
 
 interface DogItem {
     id: string;
@@ -274,82 +274,88 @@ export default function Home({ navigation }) {
     );
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <View style={styles.header}>
-                <Text style={[styles.title, { color: theme.colors.onBackground }]}>🐶 Cães para Adoção</Text>
-                <UserMenu
-                    visible={menuVisible}
-                    onDismiss={() => setMenuVisible(false)}
-                    onToggleVisible={() => setMenuVisible(true)}
-                    onEditProfile={() => navigation.navigate('Edit')}
-                    onFavorites={() => navigation.navigate('Favorites')}
-                    onAdopteds={() => navigation.navigate('Adopteds')}
-                    onToggleTheme={toggleTheme}
-                    isDarkTheme={isDarkTheme}
-                    onLogout={logout}
-                />
-            </View>
+        <>
+            <Header
+                title="AdoCão"
+                menuVisible={menuVisible}
+                onToggleMenu={() => setMenuVisible(true)}
+                onDismissMenu={() => setMenuVisible(false)}
+                onEditProfile={() => navigation.navigate('Edit')}
+                onFavorites={() => navigation.navigate('Favorites')}
+                onAdopteds={() => navigation.navigate('Adopteds')}
+                onToggleTheme={toggleTheme}
+                isDarkTheme={isDarkTheme}
+                onLogout={logout}
+            />
+            <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
 
-            <View style={{ marginBottom: 16 }}>
-                <BreedFilter
-                    breeds={availableBreeds}
-                    selectedBreed={selectedBreed}
-                    onSelect={(breed) => {
-                        setSelectedBreed(breed);
-                        fetchDogsByBreed(breed);
-                    }}
-                    onClear={() => {
-                        setSelectedBreed(null);
-                        setDogs(allDogs);
-                    }}
-                />
-            </View>
+                <View style={{ marginBottom: 16 }}>
+                    <Text style={{ color: theme.colors.onBackground, fontSize: 25, paddingBottom: 5}}>
+                        Cães para adoção:
+                    </Text>
+                    <BreedFilter
+                        breeds={availableBreeds}
+                        selectedBreed={selectedBreed}
+                        onSelect={(breed) => {
+                            setSelectedBreed(breed);
+                            fetchDogsByBreed(breed);
+                        }}
+                        onClear={() => {
+                            setSelectedBreed(null);
+                            setDogs(allDogs);
+                        }}
+                    />
+                </View>
 
-            {loading ? (
-                <LoadingIndicator />
-            ) : (
-                <FlatList
-                    data={dogs}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderItem}
-                    contentContainerStyle={styles.list}
-                />
-            )}
+                {loading ? (
+                    <LoadingIndicator />
+                ) : (
+                    <FlatList
+                        data={dogs}
+                        keyExtractor={(item) => item.id}
+                        renderItem={renderItem}
+                        contentContainerStyle={styles.gridContainer}
+                        numColumns={7}
+                        columnWrapperStyle={styles.columnWrapper}
+                        showsVerticalScrollIndicator={false}
+                    />
+                )}
 
-            <Modal visible={!!confirmDog} transparent animationType="fade">
-                <View style={styles.modalBackground}>
-                    <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
-                        <Text style={{ fontSize: 16, marginBottom: 16, color: theme.colors.onSurface, textAlign: 'center' }}>
-                            Tem certeza que deseja adotar {confirmDog?.name}?
-                        </Text>
-                        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
-                            <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#ccc' }]} onPress={() => setConfirmDog(null)}>
-                                <Text style={styles.modalButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, { backgroundColor: theme.colors.primary }]} onPress={confirmAdocao}>
-                                <Text style={styles.modalButtonText}>Adotar</Text>
-                            </TouchableOpacity>
+                <Modal visible={!!confirmDog} transparent animationType="fade">
+                    <View style={styles.modalBackground}>
+                        <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+                            <Text style={{ fontSize: 16, marginBottom: 16, color: theme.colors.onSurface, textAlign: 'center' }}>
+                                Tem certeza que deseja adotar {confirmDog?.name}?
+                            </Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
+                                <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#ccc' }]} onPress={() => setConfirmDog(null)}>
+                                    <Text style={styles.modalButtonText}>Cancelar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.modalButton, { backgroundColor: theme.colors.primary }]} onPress={confirmAdocao}>
+                                    <Text style={styles.modalButtonText}>Adotar</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
 
-            <Snackbar
-                visible={snackbarVisible}
-                onDismiss={() => setSnackbarVisible(false)}
-                duration={3000}
-            >
-                {snackbarMessage}
-            </Snackbar>
-        </View>
+                <Snackbar
+                    visible={snackbarVisible}
+                    onDismiss={() => setSnackbarVisible(false)}
+                    duration={3000}
+                >
+                    {snackbarMessage}
+                </Snackbar>
+            </View>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50,
-        paddingHorizontal: 16,
+        paddingTop: 30,
+        paddingHorizontal: 12,
     },
     header: {
         flexDirection: 'row',
@@ -361,9 +367,14 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
     },
-    list: {
-        gap: 16,
+    gridContainer: {
+        paddingBottom: 20,
     },
+    columnWrapper: {
+        justifyContent: 'space-between',
+        marginBottom: 12, // Espaço entre as linhas
+    },
+    // Mantenha os outros estilos...
     modalBackground: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',

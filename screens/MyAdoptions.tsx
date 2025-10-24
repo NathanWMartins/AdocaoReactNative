@@ -1,16 +1,15 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
     FlatList,
     Image,
     StyleSheet,
-    ActivityIndicator,
     TouchableOpacity,
     Modal,
     TextInput,
 } from 'react-native';
-import { Menu, Snackbar, useTheme } from 'react-native-paper';
+import { Snackbar, useTheme } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { auth, db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -20,8 +19,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { decrementarAdotados, setAdotados } from '../redux/contadorSlice';
 import type { RootState } from '../redux/store';
 import { useFocusEffect } from '@react-navigation/native';
-import UserMenu from '../components/UserMenu';
 import LoadingIndicator from '../components/LoadingIndicator';
+import Header from '../components/Header';
 
 
 interface AdoptionItem {
@@ -180,104 +179,107 @@ export default function MyAdoptions({ navigation }) {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <View style={styles.header}>
-                <Text style={[styles.title, { color: theme.colors.onBackground }]}>🐾 Meus Adotados</Text>
-                <UserMenu
-                    visible={menuVisible}
-                    onDismiss={() => setMenuVisible(false)}
-                    onToggleVisible={() => setMenuVisible(true)}
-                    onEditProfile={() => navigation.navigate('Edit')}
-                    onFavorites={() => navigation.navigate('Favorites')}
-                    onAdopteds={() => navigation.navigate('Adopteds')}
-                    onToggleTheme={toggleTheme}
-                    isDarkTheme={isDarkTheme}
-                    onLogout={logout}
-                />
+        <>
+            <Header
+                title="AdoCão"
+                menuVisible={menuVisible}
+                onToggleMenu={() => setMenuVisible(true)}
+                onDismissMenu={() => setMenuVisible(false)}
+                onEditProfile={() => navigation.navigate('Edit')}
+                onFavorites={() => navigation.navigate('Favorites')}
+                onAdopteds={() => navigation.navigate('Adopteds')}
+                onToggleTheme={toggleTheme}
+                isDarkTheme={isDarkTheme}
+                onLogout={logout}
+            />
+            <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+                <View style={styles.header}>
+                    <Text style={[styles.title, { color: theme.colors.onBackground }]}>Meus Adotados</Text>
+                </View>
+
+                <Text style={{ color: theme.colors.onBackground, fontSize: 16, marginTop: 4 }}>
+                    Total de adotados: {adotados}
+                </Text>
+
+                {loading ? (
+                    <LoadingIndicator />
+                ) : (
+                    <FlatList
+                        data={adoptions}
+                        keyExtractor={(item) => item.id}
+                        renderItem={renderItem}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                    />
+                )}
+
+                <Modal visible={modalVisible} transparent animationType="fade">
+                    <View style={styles.modalBackground}>
+                        <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+                            {selectedDog && (
+                                <>
+                                    <Image source={{ uri: selectedDog.imageUrl }} style={styles.modalImage} />
+                                    <Text style={[styles.modalText, { color: theme.colors.onSurface }]}>Você vai mesmo me abandonar?😭</Text>
+                                    <View style={styles.modalButtons}>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, { backgroundColor: theme.colors.error }]}
+                                            onPress={() => setModalVisible(false)}
+                                        >
+                                            <Text style={styles.buttonText}>Cancelar</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, { backgroundColor: '#ccc' }]}
+                                            onPress={cancelarAdocao}
+                                        >
+                                            <Text style={styles.buttonText}>Adeus</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
+
+                <Modal visible={editModalVisible} transparent animationType="fade">
+                    <View style={styles.modalBackground}>
+                        <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
+                            {selectedDog && (
+                                <>
+                                    <Text style={[styles.modalText, { color: theme.colors.onSurface }]}>Editar nome de {selectedDog.name}</Text>
+                                    <TextInput
+                                        value={editingName}
+                                        onChangeText={setEditingName}
+                                        placeholder="Novo nome"
+                                        style={{ width: '100%', padding: 8, borderColor: '#ccc', borderWidth: 1, marginBottom: 16, borderRadius: 6, color: theme.colors.onSurface }}
+                                    />
+                                    <View style={styles.modalButtons}>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, { backgroundColor: theme.colors.error }]}
+                                            onPress={() => setEditModalVisible(false)}
+                                        >
+                                            <Text style={styles.buttonText}>Cancelar</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
+                                            onPress={salvarNome}
+                                        >
+                                            <Text style={styles.buttonText}>Salvar</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
+
+                <Snackbar
+                    visible={snackbarVisible}
+                    onDismiss={() => setSnackbarVisible(false)}
+                    duration={3000}
+                >
+                    {snackbarMessage}
+                </Snackbar>
             </View>
-
-            <Text style={{ color: theme.colors.onBackground, fontSize: 16, marginTop: 4 }}>
-                Total de adotados: {adotados}
-            </Text>
-
-            {loading ? (
-                <LoadingIndicator />
-            ) : (
-                <FlatList
-                    data={adoptions}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderItem}
-                    contentContainerStyle={{ paddingBottom: 20 }}
-                />
-            )}
-
-            <Modal visible={modalVisible} transparent animationType="fade">
-                <View style={styles.modalBackground}>
-                    <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
-                        {selectedDog && (
-                            <>
-                                <Image source={{ uri: selectedDog.imageUrl }} style={styles.modalImage} />
-                                <Text style={[styles.modalText, { color: theme.colors.onSurface }]}>Você vai mesmo me abandonar?😭</Text>
-                                <View style={styles.modalButtons}>
-                                    <TouchableOpacity
-                                        style={[styles.modalButton, { backgroundColor: theme.colors.error }]}
-                                        onPress={() => setModalVisible(false)}
-                                    >
-                                        <Text style={styles.buttonText}>Cancelar</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.modalButton, { backgroundColor: '#ccc' }]}
-                                        onPress={cancelarAdocao}
-                                    >
-                                        <Text style={styles.buttonText}>Adeus</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </>
-                        )}
-                    </View>
-                </View>
-            </Modal>
-
-            <Modal visible={editModalVisible} transparent animationType="fade">
-                <View style={styles.modalBackground}>
-                    <View style={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}>
-                        {selectedDog && (
-                            <>
-                                <Text style={[styles.modalText, { color: theme.colors.onSurface }]}>Editar nome de {selectedDog.name}</Text>
-                                <TextInput
-                                    value={editingName}
-                                    onChangeText={setEditingName}
-                                    placeholder="Novo nome"
-                                    style={{ width: '100%', padding: 8, borderColor: '#ccc', borderWidth: 1, marginBottom: 16, borderRadius: 6, color: theme.colors.onSurface }}
-                                />
-                                <View style={styles.modalButtons}>
-                                    <TouchableOpacity
-                                        style={[styles.modalButton, { backgroundColor: theme.colors.error }]}
-                                        onPress={() => setEditModalVisible(false)}
-                                    >
-                                        <Text style={styles.buttonText}>Cancelar</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
-                                        onPress={salvarNome}
-                                    >
-                                        <Text style={styles.buttonText}>Salvar</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </>
-                        )}
-                    </View>
-                </View>
-            </Modal>
-
-            <Snackbar
-                visible={snackbarVisible}
-                onDismiss={() => setSnackbarVisible(false)}
-                duration={3000}
-            >
-                {snackbarMessage}
-            </Snackbar>
-        </View>
+        </>
     );
 }
 

@@ -6,7 +6,10 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build": "expo build:web",
+    "dev": "expo start --web",
+    "vercel-build": "expo build:web"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
@@ -25,6 +28,7 @@
     "react-native-paper": "^5.14.5",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.11.1",
+    "react-native-vector-icons": "^10.3.0",
     "react-native-web": "^0.20.0",
     "react-navigation": "^4.4.4",
     "react-navigation-stack": "^2.10.4",

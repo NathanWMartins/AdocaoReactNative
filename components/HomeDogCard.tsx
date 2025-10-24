@@ -1,9 +1,7 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from 'react-native-paper';
-import AdoptButton from './AdoptButton';
-import DogInfo from './DogInfo';
 
 interface DogItem {
     id: string;
@@ -28,54 +26,147 @@ export default function DogCard({
     onAdopt,
 }: DogCardProps) {
     const theme = useTheme();
+    const [isHovered, setIsHovered] = useState(false);
+
+    const cardStyle = {
+        ...styles.card,
+        backgroundColor: theme.colors.surface,
+        transform: [{ scale: isHovered ? 1.02 : 1 }],
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: isHovered ? 4 : 2 },
+        shadowOpacity: isHovered ? 0.25 : 0.1,
+        shadowRadius: isHovered ? 8 : 4,
+        elevation: isHovered ? 8 : 3,
+    };
+
+    const favoriteButtonStyle = {
+        ...styles.favoriteButton,
+        backgroundColor: isHovered ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)',
+    };
+
+    const adoptButtonStyle = {
+        ...styles.adoptButton,
+        backgroundColor: theme.colors.primary,
+        transform: [{ scale: isHovered ? 1.05 : 1 }],
+    };
 
     return (
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-            <Image source={{ uri: dog.imageUrl }} style={styles.image} />
-
-            <DogInfo
-                name={dog.name}
-                breed={dog.breed}
-                age={dog.age}
-                gender={dog.gender}
-            />
-
-            <View style={styles.actions}>
-                <TouchableOpacity style={styles.iconButton} onPress={onToggleFavorite}>
+        <View 
+            style={cardStyle}
+            {...(Platform.OS === 'web' ? {
+                onMouseEnter: () => setIsHovered(true),
+                onMouseLeave: () => setIsHovered(false),
+            } : {})}
+        >
+            <View style={styles.imageContainer}>
+                <Image source={{ uri: dog.imageUrl }} style={styles.image} />
+                <TouchableOpacity 
+                    style={favoriteButtonStyle} 
+                    onPress={onToggleFavorite}
+                >
                     <MaterialIcons
-                        name={isFavorite ? 'star' : 'star-border'}
-                        size={24}
-                        color={isFavorite ? 'yellow' : '#26b8b5'}
+                        name={isFavorite ? 'favorite' : 'favorite-border'}
+                        size={20}
+                        color={isFavorite ? '#ff4757' : '#fff'}
                     />
                 </TouchableOpacity>
-
-                <AdoptButton onPress={onAdopt} />
             </View>
+
+            <View style={styles.infoContainer}>
+                <Text style={[styles.name, { color: theme.colors.onSurface }]}>
+                    {dog.name}
+                </Text>
+                <Text style={[styles.breed, { color: theme.colors.onSurface }]}>
+                    {dog.breed}
+                </Text>
+                <View style={styles.details}>
+                    <Text style={[styles.detail, { color: theme.colors.onSurface }]}>
+                        {dog.age} anos
+                    </Text>
+                    <Text style={[styles.detail, { color: theme.colors.onSurface }]}>
+                        {dog.gender}
+                    </Text>
+                </View>
+            </View>
+
+            <TouchableOpacity 
+                style={adoptButtonStyle} 
+                onPress={onAdopt}
+            >
+                <Text style={styles.adoptButtonText}>Adotar</Text>
+            </TouchableOpacity>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     card: {
-        flexDirection: 'row',
+        width: 220,
         borderRadius: 12,
-        marginVertical: 8,
-        padding: 8,
+        padding: 12,
+        margin: 6,
+        elevation: 3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
         alignItems: 'center',
-        elevation: 2,
+    },
+    imageContainer: {
+        position: 'relative',
+        marginBottom: 8,
     },
     image: {
-        width: 100,
-        height: 100,
+        width: 200,
+        height: 200,
         borderRadius: 8,
     },
-    actions: {
-        alignItems: 'flex-end',
-        justifyContent: 'space-between',
-        height: '100%',
-        marginLeft: 12,
+    favoriteButton: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        borderRadius: 15,
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    iconButton: {
-        padding: 4,
+    infoContainer: {
+        alignItems: 'center',
+        marginBottom: 8,
+        width: '100%',
+    },
+    name: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    breed: {
+        fontSize: 12,
+        marginBottom: 4,
+        textAlign: 'center',
+        opacity: 0.8,
+    },
+    details: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    detail: {
+        fontSize: 11,
+        opacity: 0.7,
+    },
+    adoptButton: {
+        paddingVertical: 6,
+        paddingHorizontal: 16,
+        borderRadius: 6,
+        width: '100%',
+        alignItems: 'center',
+    },
+    adoptButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 12,
     },
 });
