@@ -21,7 +21,7 @@ import type { RootState } from '../redux/store';
 import { useFocusEffect } from '@react-navigation/native';
 import LoadingIndicator from '../components/LoadingIndicator';
 import Header from '../components/Header';
-
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface AdoptionItem {
     id: string;
@@ -146,15 +146,42 @@ export default function MyAdoptions({ navigation }) {
         <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <Image source={{ uri: item.imageUrl }} style={styles.image} />
             <View style={styles.infoContainer}>
-                <Text style={[styles.breed, { color: theme.colors.onSurface }]}>Nome: {item.name}</Text>
-                <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Sexo: {item.gender}</Text>
-                <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Raça: {item.breed}</Text>
-                <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Idade: {item.age} anos</Text>
-                <Text style={[styles.detail, { color: theme.colors.onSurface }]}>Adotado em: {formatDate(item.adoptedAt)}</Text>
-                <Text style={[styles.label, { color: '#26b8b5' }]}>✅ Adotado, cachorro a sua espera</Text>
-                <Text style={[styles.callInfo, { color: theme.colors.primary }]}>
-                    📞 Ligue ou mande mensagem para (48) 99999-8888 para marcar o encontro
-                </Text>
+                <View style={styles.infoRow}>
+                    <Icon name="dog" size={16} color={theme.colors.onSurface} />
+                    <Text style={[styles.breed, { color: theme.colors.onSurface, marginLeft: 8 }]}>Nome: {item.name}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                    <Icon name="gender-male-female" size={16} color={theme.colors.onSurface} />
+                    <Text style={[styles.detail, { color: theme.colors.onSurface, marginLeft: 8 }]}>Sexo: {item.gender}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                    <Icon name="paw" size={16} color={theme.colors.onSurface} />
+                    <Text style={[styles.detail, { color: theme.colors.onSurface, marginLeft: 8 }]}>Raça: {item.breed}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                    <Icon name="cake" size={16} color={theme.colors.onSurface} />
+                    <Text style={[styles.detail, { color: theme.colors.onSurface, marginLeft: 8 }]}>Idade: {item.age} anos</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                    <Icon name="calendar" size={16} color={theme.colors.onSurface} />
+                    <Text style={[styles.detail, { color: theme.colors.onSurface, marginLeft: 8 }]}>Adotado em: {formatDate(item.adoptedAt)}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                    <Icon name="check-circle" size={16} color="#26b8b5" />
+                    <Text style={[styles.label, { color: '#26b8b5', marginLeft: 8 }]}>Adotado, cachorro a sua espera</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                    <Icon name="phone" size={16} color={theme.colors.primary} />
+                    <Text style={[styles.callInfo, { color: theme.colors.primary, marginLeft: 8 }]}>
+                        Ligue ou mande mensagem para (48) 99999-8888 para marcar o encontro
+                    </Text>
+                </View>
             </View>
             <View>
                 <TouchableOpacity onPress={() => { setSelectedDog(item); setEditingName(item.name); setEditModalVisible(true); }}>
@@ -288,6 +315,11 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingTop: 50,
         paddingHorizontal: 16,
+    },
+    infoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
     },
     header: {
         flexDirection: 'row',
